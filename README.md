@@ -1,3 +1,3 @@
-# Teaching case for Albany Housing Analytics 
+# Replication code for Teaching case for Albany Housing Analytics 
 
-Enter instructions here.
+
