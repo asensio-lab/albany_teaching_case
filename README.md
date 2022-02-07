@@ -1,2 +1,3 @@
-# albany_teaching_case
-Teaching case for Albany Housing Analytics 
+# Teaching case for Albany Housing Analytics 
+
+Enter instructions here.
