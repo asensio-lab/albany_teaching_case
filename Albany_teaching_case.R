@@ -40,10 +40,10 @@ table(ELC_property$Treatment)
 ELC_property <- ELC_property %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) # outliers
 
 # by group
-fe <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = ELC_property, model='within', index = c('ID','Period')) # fixed effects to remove unobserved heterogeneity between properties and periods
-summary(fe) 
-coeftest(fe, vcov=function(x) vcovHC(x, cluster="group", type="HC0")) # cluster-adjusted standard error account for within-cluster correlation
-confint(coeftest(fe, vcov=function(x) vcovHC(x, cluster="group", type="HC0")))
+fe_reg <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = ELC_property, model='within', index = c('ID','Period')) # fixed effects to remove unobserved heterogeneity between properties and periods
+summary(fe_reg) 
+coeftest(fe_reg, vcov=function(x) vcovHC(x, cluster="group", type="HC0")) # cluster-adjusted standard error account for within-cluster correlation
+confint(coeftest(fe_reg, vcov=function(x) vcovHC(x, cluster="group", type="HC0")))
 
 ## PSM - Propensity Score Matching
 
