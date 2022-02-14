@@ -78,14 +78,7 @@ psm_avg_var_bef <- c(sqrt((var(PropertyStats$BaselineConsumption[PropertyStats$G
                      sqrt((var(PropertyStats$beds[PropertyStats$Group==1]) + var(PropertyStats$beds[PropertyStats$Group==0]))/2),
                      sqrt((var(PropertyStats$baths[PropertyStats$Group==1]) + var(PropertyStats$baths[PropertyStats$Group==0]))/2),
                      sqrt((var(PropertyStats$PropertyAge[PropertyStats$Group==1]) + var(PropertyStats$PropertyAge[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$market[PropertyStats$Group==1]) + var(PropertyStats$market[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$assessment[PropertyStats$Group==1]) + var(PropertyStats$assessment[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$MedianIncome[PropertyStats$Group==1]) + var(PropertyStats$MedianIncome[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$PovertyBelow[PropertyStats$Group==1]) + var(PropertyStats$PovertyBelow[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$FemaleHouseholder[PropertyStats$Group==1]) + var(PropertyStats$FemaleHouseholder[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$Black[PropertyStats$Group==1]) + var(PropertyStats$Black[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$RentAsIncome35[PropertyStats$Group==1]) + var(PropertyStats$RentAsIncome35[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$SNAP[PropertyStats$Group==1]) + var(PropertyStats$SNAP[PropertyStats$Group==0]))/2))
+                     sqrt((var(PropertyStats$market[PropertyStats$Group==1]) + var(PropertyStats$market[PropertyStats$Group==0]))/2))
 
 # calculate standardized percent bias before matching
 psm_std_mean_dif_bef <- 100*(psm_mean_treated_bef-psm_mean_control_bef)/psm_avg_var_bef
