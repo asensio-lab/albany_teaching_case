@@ -72,7 +72,7 @@ summary(fe_reg)  #call regression output
 psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,1]
 psm_mean_control_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,2]
 
-# calculate sum of variances of treated and control properties before matching
+# calculate sum of covariate variances of treated and control properties before matching
 psm_avg_var_bef <- c(sqrt((var(PropertyStats$BaselineConsumption[PropertyStats$Group==1]) + var(PropertyStats$BaselineConsumption[PropertyStats$Group==0]))/2),
                      sqrt((var(PropertyStats$size[PropertyStats$Group==1]) + var(PropertyStats$size[PropertyStats$Group==0]))/2),
                      sqrt((var(PropertyStats$beds[PropertyStats$Group==1]) + var(PropertyStats$beds[PropertyStats$Group==0]))/2),
@@ -94,7 +94,7 @@ psm_std_mean_dif_bef <- 100*(psm_mean_treated_bef-psm_mean_control_bef)/psm_avg_
 psm_mean_treated_aft <- ...
 psm_mean_control_aft <- ...
 
-# calculate sum of variances of treated and control properties after matching
+# calculate sum of covariate variances of treated and control properties after matching
 psm_avg_var_aft <- ...
 
 # calculate standardized percent bias after matching
