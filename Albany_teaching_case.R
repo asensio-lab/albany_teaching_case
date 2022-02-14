@@ -1,3 +1,4 @@
+# import packages
 if (!require(c("tidyverse", "ggalt","gdata","gridExtra","rgenoud","MatchIt","plm","Hmisc","lmtest","sandwich","multiwayvcov")))
   install.packages(c("tidyverse","ggalt","gdata","gridExtra","rgenoud","MatchIt","plm","Hmisc","lmtest","sandwich","multiwayvcov"))
 
@@ -13,44 +14,61 @@ library(lmtest)
 library(sandwich)
 library(multiwayvcov)
 
-ELC <- read.csv(file = "ELC.csv", header = TRUE) #5925488
+## data import
+
+ELC <- read.csv(...) #5,925,488 - residential electric usage 2004-2019
 ELC <- ELC %>% 
-  mutate(yearELC = as.factor(yearELC),
-         monthELC = as.factor(monthELC))
+  mutate(yearELC = ..., #factor variable
+         monthELC = ...) #factor variable
+PropertyStats <- read.csv(...) #16,680 - property data
 
-PropertyStats <- read.csv(file = "PropertyStats.csv", header = TRUE) #16680
-PropertyStats <- PropertyStats %>% 
-  mutate(baths = as.numeric(baths),
-         beds = as.numeric(beds),
-         assessment = as.numeric(assessment),
-         market = as.numeric(market),
-         size = as.numeric(size),
-         PropertyAge = as.numeric(PropertyAge),
-         BaselineConsumption = as.numeric(BaselineConsumption),
-         InitialPeriod = as.numeric(InitialPeriod))
+## fixed effects model
 
-## Fixed Effects Model
-
-ELC_property <- merge(ELC, PropertyStats, by = 'AddressIndex') #2931700
+# Treatment variable encompass both the fact of being treated and the time of treatment => 'Treatment' equals 1 when the treated unit gets treatment
+ELC_property <- merge(ELC, PropertyStats, by = 'AddressIndex') #2,931,700 - merge two datasets
 ELC_property <- ELC_property %>%
-  mutate(NormConsumption = Consumption/size,
-         Treatment = ifelse(InitialPeriod<=Period,1,0)) # Treatment variable encompass both the fact of being treated and the time of treatment - turns out 1 when the treated unit gets treatment
+  mutate(NormConsumption = Consumption/size, #standardize consumption
+         Treatment = ifelse(InitialPeriod<=Period,1,0)) #create treatment variable
 ELC_property <- ELC_property %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment))
-table(ELC_property$Treatment)
-ELC_property <- ELC_property %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) # outliers
+ELC_property <- ELC_property %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) #remove outliers
 
-# by group
-fe_reg <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = ELC_property, model='within', index = c('ID','Period')) # fixed effects to remove unobserved heterogeneity between properties and periods
+# regression adjustments
+fe_reg <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = ELC_property, model='within', index = c('ID','Period')) #fixed effects to remove unobserved heterogeneity between properties and periods
 summary(fe_reg) 
-coeftest(fe_reg, vcov=function(x) vcovHC(x, cluster="group", type="HC0")) # cluster-adjusted standard error account for within-cluster correlation
-confint(coeftest(fe_reg, vcov=function(x) vcovHC(x, cluster="group", type="HC0")))
+# Treatment - a dummy variable indicating program participation, 
+# yearELC & monthELC - time effects,
+# CoolingDays & HeatingDays - monthly number of either days retrieved from National Oceanic and Atmospheric Administration (NOAA), 
+# model 'within' - fixed effects model
+summary(fe_reg)  #call regression output
 
 ## PSM - Propensity Score Matching
 
-psm_match <- matchit(Group ~ ..., method='nearest', data=PropertyStats, replace = TRUE, ratio=21)
-summary(psm_match, data = PropertyStats)
+# propensity scores
+psm_match <- matchit(Group ~ ... [your covariates] ...,
+                     method='nearest', data=PropertyStats, replace = TRUE, ratio=21)
+# method 'nearest' indicates propensity score matching method (nearest neighbor matching), 
+# ratio - number of control matches per treatment unit,
+# replace = TRUE - multiple time usage of controls
+summary(psm_match) # call regression output
 
-# bias reduction in standardized percent bias
+# extract matched data
+psm_matched_data <- match.data(psm_match) #6,767
+psm_matched_data$Index <- 1:nrow(psm_matched_data)
+
+# merge data and create factors
+psmPanel <- merge(ELC, psm_matched_data, by = 'AddressIndex') #1,170,765
+psmPanel <- psmPanel %>% 
+  mutate(NormConsumption = Consumption/size,
+         Treatment = ifelse(InitialPeriod<=Period,1,0)) # Treatment variable encompass both the fact of being treated and the time of treatment - turns out 1 when the treated unit gets treatment
+psmPanel <- psmPanel %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment))
+table(psmPanel$Treatment)
+psmPanel <- psmPanel %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) 
+
+# by group
+psm_reg <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = psmPanel, model = 'within', index = c('ID','Period')) # no weights included as the results are almost identical (-0.0565 vs.-0.0562) but no clustering allowed for a weighted panel regression with fixed effects 
+summary(psm_reg) 
+
+## visualization for bias reduction in standardized percent bias
 psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,1]
 
 psm_mean_control_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,2]
@@ -121,21 +139,3 @@ gg_psm <- ggplot(psm_bias_df, aes(x=After, xend=Before, y=Covariates, group=Cova
         panel.border=element_blank())
 plot(gg_psm)
 
-# extract matched data
-psm_matched_data <- match.data(psm_match) #6767
-psm_matched_data$Index <- 1:nrow(psm_matched_data)
-
-# merge data and create factors
-psmPanel <- merge(ELC, psm_matched_data, by = 'AddressIndex') #1,170,765
-psmPanel <- psmPanel %>% 
-  mutate(NormConsumption = Consumption/size,
-         Treatment = ifelse(InitialPeriod<=Period,1,0)) # Treatment variable encompass both the fact of being treated and the time of treatment - turns out 1 when the treated unit gets treatment
-psmPanel <- psmPanel %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment))
-table(psmPanel$Treatment)
-psmPanel <- psmPanel %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) 
-
-# by group
-psm_reg <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = psmPanel, model = 'within', index = c('ID','Period')) # no weights included as the results are almost identical (-0.0565 vs.-0.0562) but no clustering allowed for a weighted panel regression with fixed effects 
-summary(psm_reg) 
-coeftest(psm_reg, vcov=function(x) vcovHC(x, cluster="group", type="HC0"))
-confint(coeftest(psm_reg, vcov=function(x) vcovHC(x, cluster="group", type="HC0")))
