@@ -63,8 +63,8 @@ psmPanel <- psmPanel %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment)
 psmPanel <- psmPanel %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) #remove outliers
 
 # regression adjustments - add formula
-fe_reg <- plm(..., data = ELC_property, model='within', index = c('ID','Period'))
-summary(fe_reg)  #call regression output
+psm_reg <- plm(..., data = ELC_property, model='within', weights=weights, index = c('ID','Period'))
+summary(psm_reg)  #call regression output
 
 ## visualization for bias reduction in standardized percent bias
 
