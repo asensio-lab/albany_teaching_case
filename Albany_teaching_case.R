@@ -32,9 +32,8 @@ ELC_property <- ELC_property %>%
 ELC_property <- ELC_property %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment))
 ELC_property <- ELC_property %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) #remove outliers
 
-# regression adjustments
-fe_reg <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = ELC_property, model='within', index = c('ID','Period')) #fixed effects to remove unobserved heterogeneity between properties and periods
-summary(fe_reg) 
+# regression adjustments - fixed effects to remove unobserved heterogeneity between properties and time periods
+fe_reg <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = ELC_property, model='within', index = c('ID','Period'))
 # Treatment - a dummy variable indicating program participation, 
 # yearELC & monthELC - time effects,
 # CoolingDays & HeatingDays - monthly number of either days retrieved from National Oceanic and Atmospheric Administration (NOAA), 
@@ -56,23 +55,24 @@ psm_matched_data <- match.data(psm_match) #6,767
 psm_matched_data$Index <- 1:nrow(psm_matched_data)
 
 # merge data and create factors
-psmPanel <- merge(ELC, psm_matched_data, by = 'AddressIndex') #1,170,765
+psmPanel <- merge(ELC, psm_matched_data, by = 'AddressIndex') #1,170,765 - merge two datasets
 psmPanel <- psmPanel %>% 
-  mutate(NormConsumption = Consumption/size,
-         Treatment = ifelse(InitialPeriod<=Period,1,0)) # Treatment variable encompass both the fact of being treated and the time of treatment - turns out 1 when the treated unit gets treatment
+  mutate(NormConsumption = ..., #standardize consumption
+         Treatment = ...) #create treatment variable
 psmPanel <- psmPanel %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment))
-table(psmPanel$Treatment)
-psmPanel <- psmPanel %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) 
+psmPanel <- psmPanel %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) #remove outliers
 
-# by group
-psm_reg <- plm(log(NormConsumption) ~ Treatment + yearELC + monthELC + CoolingDays + HeatingDays, data = psmPanel, model = 'within', index = c('ID','Period')) # no weights included as the results are almost identical (-0.0565 vs.-0.0562) but no clustering allowed for a weighted panel regression with fixed effects 
-summary(psm_reg) 
+# regression adjustments - add formula
+fe_reg <- plm(..., data = ELC_property, model='within', index = c('ID','Period'))
+summary(fe_reg)  #call regression output
 
 ## visualization for bias reduction in standardized percent bias
-psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,1]
 
+# get covariate means of treated and control properties before matching
+psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,1]
 psm_mean_control_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,2]
 
+# calculate sum of variances of treated and control properties before matching
 psm_avg_var_bef <- c(sqrt((var(PropertyStats$BaselineConsumption[PropertyStats$Group==1]) + var(PropertyStats$BaselineConsumption[PropertyStats$Group==0]))/2),
                      sqrt((var(PropertyStats$size[PropertyStats$Group==1]) + var(PropertyStats$size[PropertyStats$Group==0]))/2),
                      sqrt((var(PropertyStats$beds[PropertyStats$Group==1]) + var(PropertyStats$beds[PropertyStats$Group==0]))/2),
@@ -87,39 +87,31 @@ psm_avg_var_bef <- c(sqrt((var(PropertyStats$BaselineConsumption[PropertyStats$G
                      sqrt((var(PropertyStats$RentAsIncome35[PropertyStats$Group==1]) + var(PropertyStats$RentAsIncome35[PropertyStats$Group==0]))/2),
                      sqrt((var(PropertyStats$SNAP[PropertyStats$Group==1]) + var(PropertyStats$SNAP[PropertyStats$Group==0]))/2))
 
+# calculate standardized percent bias before matching
 psm_std_mean_dif_bef <- 100*(psm_mean_treated_bef-psm_mean_control_bef)/psm_avg_var_bef
 
+# get covariate means of treated and control properties after matching
+psm_mean_treated_aft <- ...
+psm_mean_control_aft <- ...
 
-psm_mean_treated_aft <- summary(psm_match, data = PropertyStats)$sum.matched[2:14,1]
-psm_mean_control_aft <- summary(psm_match, data = PropertyStats)$sum.matched[2:14,2]
+# calculate sum of variances of treated and control properties after matching
+psm_avg_var_aft <- ...
 
-psm_avg_var_aft <- c(sqrt((var(psm_matched_data$BaselineConsumption[psm_matched_data$Group==1]) + var(psm_matched_data$BaselineConsumption[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$size[psm_matched_data$Group==1]) + var(psm_matched_data$size[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$beds[psm_matched_data$Group==1]) + var(psm_matched_data$beds[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$baths[psm_matched_data$Group==1]) + var(psm_matched_data$baths[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$PropertyAge[psm_matched_data$Group==1]) + var(psm_matched_data$PropertyAge[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$market[psm_matched_data$Group==1]) + var(psm_matched_data$market[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$assessment[psm_matched_data$Group==1]) + var(psm_matched_data$assessment[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$MedianIncome[psm_matched_data$Group==1]) + var(psm_matched_data$MedianIncome[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$PovertyBelow[psm_matched_data$Group==1]) + var(psm_matched_data$PovertyBelow[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$FemaleHouseholder[psm_matched_data$Group==1]) + var(psm_matched_data$FemaleHouseholder[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$Black[psm_matched_data$Group==1]) + var(psm_matched_data$Black[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$RentAsIncome35[psm_matched_data$Group==1]) + var(psm_matched_data$RentAsIncome35[psm_matched_data$Group==0]))/2),
-                     sqrt((var(psm_matched_data$SNAP[psm_matched_data$Group==1]) + var(psm_matched_data$SNAP[psm_matched_data$Group==0]))/2))
+# calculate standardized percent bias after matching
+psm_std_mean_dif_aft <- ...
 
-psm_std_mean_dif_aft <- 100*(psm_mean_treated_aft-psm_mean_control_aft)/psm_avg_var_aft
-
+# calculate bias reduction
 psm_reduction <- round(summary(psm_match, data = PropertyStats)$reduction[2:14,1],2)                             
 
-names <- c("Average Baseline Consumption", "Property Size", "No. Beds", "No. Baths", "Property Age", "Market Property Value", "Assessment Property Value")
-
+# legend and date compilation
+names <- c("[your covariates in order of appearance in the formula]")
 Covariates <- factor(names, ordered = TRUE, levels = rev(names))
-
 psm_bias_df <- data.frame('Covariates' = Covariates,
                           'Before' = psm_std_mean_dif_bef,
                           'After' = psm_std_mean_dif_aft, 
                           'Reduction' = psm_reduction)
 
+# plot bias reduction
 gg_psm <- ggplot(psm_bias_df, aes(x=After, xend=Before, y=Covariates, group=Covariates)) +
   geom_vline(colour='#787878',xintercept = 0) +
   geom_dumbbell(color='#8ab7db', 
@@ -138,4 +130,3 @@ gg_psm <- ggplot(psm_bias_df, aes(x=After, xend=Before, y=Covariates, group=Cova
         legend.position="top",
         panel.border=element_blank())
 plot(gg_psm)
-
