@@ -16,9 +16,6 @@ The R script is written using R 4.0.2. The following R packages are used in this
 
 ### Panel data analysis
 - 'plm' (linear models for panel data) 
-- 'lmtest' (testing linear regression models)
-- 'sandwich' (robust and cluster errors)
-- 'multiwayvcov' (multi-way clustering)
 - 'Hmisc' (miscellaneous functions for data analysis)
 
 ### Visualization
