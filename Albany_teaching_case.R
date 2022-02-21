@@ -59,8 +59,8 @@ psm_matched_data$Index <- 1:nrow(psm_matched_data)
 ### visualization for bias reduction in standardized percent bias    
 
 # get covariate means of treated and control properties before matching
-psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,1]
-psm_mean_control_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:14,2]
+psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:7,1]
+psm_mean_control_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:7,2]
 
 # calculate sum of covariate variances of treated and control properties before matching
 psm_avg_var_bef <- c(sqrt((var(PropertyStats$BaselineConsumption[PropertyStats$Group==1]) + var(PropertyStats$BaselineConsumption[PropertyStats$Group==0]))/2),
@@ -84,7 +84,7 @@ psm_avg_var_aft <- ...
 psm_std_mean_dif_aft <- ...
 
 # calculate bias reduction
-psm_reduction <- round(summary(psm_match, data = PropertyStats)$reduction[2:14,1],2)                   
+psm_reduction <- round(summary(psm_match, data = PropertyStats)$reduction[2:7,1],2)                   
 
 # legend and date compilation
 names <- c("...[your covariates in order of appearance in the formula]...")
@@ -125,5 +125,5 @@ psmPanel <- psmPanel %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment)
 psmPanel <- psmPanel %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) #remove outliers
 
 ####### TODO: add fixed-effects formula  #######
-psm_reg <- plm(..., data = ELC_property, model='within', weights=weights, index = c('ID','Period'))
+psm_reg <- plm(..., data = psmPanel, model='within', weights=weights, index = c('ID','Period'))
 summary(psm_reg)  #call regression output
