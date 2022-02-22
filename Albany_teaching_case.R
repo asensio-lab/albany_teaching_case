@@ -50,7 +50,7 @@ psm_match <- matchit(Group ~ ...[your covariates]...,
 # method 'nearest' indicates propensity score matching method (nearest neighbor matching), 
 # ratio - number of control matches per treatment unit,
 # replace = TRUE - multiple time usage of controls
-summary(psm_match) # call regression output
+summary(psm_match) # call matching output
                      
 # extract matched data
 psm_matched_data <- match.data(psm_match) #6,767
