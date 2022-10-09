@@ -58,14 +58,14 @@ psm_matched_data$Index <- 1:nrow(psm_matched_data)
                                       
 ### visualization for bias reduction in standardized percent bias    
 
-# get covariate means of treated and control properties before matching (*n* indicates the number of variables chosen)
-psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:n,1]
-psm_mean_control_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:n,2]
+# get covariate means of treated and control properties before matching (N indicates the number of variables chosen)
+psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:N,1]
+psm_mean_control_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:N,2]
 
-# calculate sum of covariate variances of treated and control properties before matching (include *vars* of your choice
-psm_avg_var_bef <- c(sqrt((var(PropertyStats$var1[PropertyStats$Group==1]) + var(PropertyStats$var1[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$var2[PropertyStats$Group==1]) + var(PropertyStats$var2[PropertyStats$Group==0]))/2),
-                     sqrt((var(PropertyStats$var3[PropertyStats$Group==1]) + var(PropertyStats$var3[PropertyStats$Group==0]))/2),
+# calculate sum of covariate variances of treated and control properties before matching (include VARS of your choice)
+psm_avg_var_bef <- c(sqrt((var(PropertyStats$VAR1[PropertyStats$Group==1]) + var(PropertyStats$VAR1[PropertyStats$Group==0]))/2),
+                     sqrt((var(PropertyStats$VAR2[PropertyStats$Group==1]) + var(PropertyStats$VAR2[PropertyStats$Group==0]))/2),
+                     sqrt((var(PropertyStats$VAR3[PropertyStats$Group==1]) + var(PropertyStats$VAR3[PropertyStats$Group==0]))/2),
                      ...)
 
 # calculate standardized percent bias before matching
