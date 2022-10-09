@@ -45,7 +45,7 @@ summary(fe_reg)  #call regression output
 ### PSM - Propensity Score Matching
 
 ####### TODO: add covariates of your choice #######
-psm_match <- matchit(Group ~ ...[your covariates]...,
+psm_match <- matchit(Group ~ ...your covariates...,
                      #method='nearest', data=PropertyStats, replace = TRUE, ratio=21)
 # method 'nearest' indicates propensity score matching method (nearest neighbor matching), 
 # ratio - number of control matches per treatment unit,
