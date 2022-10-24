@@ -55,6 +55,20 @@ summary(psm_match) # call matching output
 # extract matched data
 psm_matched_data <- match.data(psm_match) #6,767
 psm_matched_data$Index <- 1:nrow(psm_matched_data)
+
+### regression adjustments after matching
+
+####### TODO: merge energy consumption and post-PSM datasets and create factors #######
+psmPanel <- merge(...) #1,170,765 - merge two datasets
+psmPanel <- psmPanel %>% 
+  mutate(NormConsumption = ..., #standardize consumption
+         Treatment = ...) #create treatment variable
+psmPanel <- psmPanel %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment))
+psmPanel <- psmPanel %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) #remove outliers
+
+####### TODO: add fixed-effects formula  #######
+psm_reg <- plm(..., data = psmPanel, model='within', weights=weights, index = c('ID','Period'))
+summary(psm_reg)  #call regression output
                                       
 ### visualization for bias reduction in standardized percent bias    
 
@@ -107,17 +121,3 @@ gg_psm <- ggplot(psm_bias_df, aes(x=After, xend=Before, y=Covariates, group=Cova
         legend.position="top",
         panel.border=element_blank())
 plot(gg_psm)   
-                     
-### regression adjustments after matching
-
-####### TODO: merge energy consumption and post-PSM datasets and create factors #######
-psmPanel <- merge(...) #1,170,765 - merge two datasets
-psmPanel <- psmPanel %>% 
-  mutate(NormConsumption = ..., #standardize consumption
-         Treatment = ...) #create treatment variable
-psmPanel <- psmPanel %>% mutate(Treatment = ifelse(is.na(Treatment),0,Treatment))
-psmPanel <- psmPanel %>% filter(NormConsumption <= quantile(NormConsumption, c(0.9999), na.rm = TRUE)) #remove outliers
-
-####### TODO: add fixed-effects formula  #######
-psm_reg <- plm(..., data = psmPanel, model='within', weights=weights, index = c('ID','Period'))
-summary(psm_reg)  #call regression output
