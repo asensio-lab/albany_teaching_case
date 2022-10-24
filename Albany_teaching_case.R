@@ -72,7 +72,7 @@ summary(psm_reg)  #call regression output
                                       
 ### visualization for bias reduction in standardized percent bias    
 
-# get covariate means of treated and control properties before matching (N indicates the number of variables chosen)
+# get covariate means of treated and control properties before matching (N+1 indicates the number of variables chosen)
 psm_mean_treated_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:N,1]
 psm_mean_control_bef <- summary(psm_match, data = PropertyStats)$sum.all[2:N,2]
 
