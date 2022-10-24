@@ -46,7 +46,7 @@ summary(fe_reg)  #call regression output
 
 ####### TODO: add covariates of your choice #######
 psm_match <- matchit(Group ~ ...your covariates...,
-                     #method='nearest', data=PropertyStats, replace = TRUE, ratio=21)
+                     method='nearest', data=PropertyStats, replace = TRUE, ratio=21)
 # method 'nearest' indicates propensity score matching method (nearest neighbor matching), 
 # ratio - number of control matches per treatment unit,
 # replace = TRUE - multiple time usage of controls
